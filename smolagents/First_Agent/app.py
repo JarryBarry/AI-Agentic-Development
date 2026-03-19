@@ -1,4 +1,4 @@
-from smolagents import CodeAgent, DuckDuckGoSearchTool, ApiModel, tool
+from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel, tool
 import datetime
 import requests
 import pytz
@@ -91,7 +91,7 @@ def image_generation(prompt: str) -> str:
 final_answer = FinalAnswerTool()
 search_tool = DuckDuckGoSearchTool()
 
-model = ApiModel(
+model = HfApiModel(
     max_tokens=2096,
     temperature=0.5,
     model_id="Qwen/Qwen2.5-Coder-32B-Instruct",
