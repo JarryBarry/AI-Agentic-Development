@@ -7,9 +7,11 @@ from bs4 import BeautifulSoup
 from tools.final_answer import FinalAnswerTool
 from Gradio_UI import GradioUI
 
+
 @tool
 def fetch_webpage(url: str) -> str:
     """Fetch and return the readable text content of a webpage.
+
     Args:
         url: The URL of the webpage to retrieve.
     """
@@ -27,9 +29,11 @@ def fetch_webpage(url: str) -> str:
     except Exception as e:
         return f"Error fetching webpage: {str(e)}"
 
+
 @tool
 def get_current_time_in_timezone(timezone: str) -> str:
     """A tool that fetches the current local time in a specified timezone.
+
     Args:
         timezone: A string representing a valid timezone (e.g., 'America/New_York').
     """
@@ -40,13 +44,14 @@ def get_current_time_in_timezone(timezone: str) -> str:
     except Exception as e:
         return f"Error fetching time for timezone '{timezone}': {str(e)}"
 
+
 final_answer = FinalAnswerTool()
 search_tool = DuckDuckGoSearchTool()
 
 model = HfApiModel(
     max_tokens=2096,
     temperature=0.5,
-    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    model_id="Qwen/Qwen2.5-Coder-32B-Instruct",
     custom_role_conversions=None,
 )
 
@@ -62,6 +67,7 @@ agent = CodeAgent(
         search_tool,
         fetch_webpage,
         get_current_time_in_timezone,
+        image_generation_tool,
     ],
     max_steps=8,
     verbosity_level=2,
@@ -69,7 +75,7 @@ agent = CodeAgent(
     planning_interval=None,
     name=None,
     description=None,
-    prompt_templates=prompt_templates
+    prompt_templates=prompt_templates,
 )
 
 GradioUI(agent).launch()
