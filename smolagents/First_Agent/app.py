@@ -1,8 +1,10 @@
-from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel, load_tool, tool
+from smolagents import CodeAgent, DuckDuckGoSearchTool, ApiModel, tool
 import datetime
 import requests
 import pytz
 import yaml
+import uuid
+import os
 from bs4 import BeautifulSoup
 from tools.final_answer import FinalAnswerTool
 from Gradio_UI import GradioUI
@@ -11,7 +13,6 @@ from Gradio_UI import GradioUI
 @tool
 def fetch_webpage(url: str) -> str:
     """Fetch and return the readable text content of a webpage.
-
     Args:
         url: The URL of the webpage to retrieve.
     """
@@ -33,7 +34,6 @@ def fetch_webpage(url: str) -> str:
 @tool
 def get_current_time_in_timezone(timezone: str) -> str:
     """A tool that fetches the current local time in a specified timezone.
-
     Args:
         timezone: A string representing a valid timezone (e.g., 'America/New_York').
     """
@@ -45,17 +45,58 @@ def get_current_time_in_timezone(timezone: str) -> str:
         return f"Error fetching time for timezone '{timezone}': {str(e)}"
 
 
+@tool
+def image_generation(prompt: str) -> str:
+    """Generate an image from a text prompt using the Hugging Face Inference API.
+    The tool sends the prompt to a text-to-image model and saves the
+    resulting image locally, returning the file path.
+    Args:
+        prompt: A detailed text description of the image you want to generate.
+    """
+    import io
+    from PIL import Image
+    from huggingface_hub import InferenceClient
+
+    HF_TOKEN = os.environ.get("HF_TOKEN", "")
+    OUTPUT_DIR = "generated_images"
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    MODELS = [
+        "black-forest-labs/FLUX.1-schnell",
+        "stabilityai/stable-diffusion-3.5-large",
+        "stabilityai/stable-diffusion-3-medium-diffusers",
+        "runwayml/stable-diffusion-v1-5",
+    ]
+
+    client = InferenceClient(token=HF_TOKEN)
+
+    last_error = None
+    for model_id in MODELS:
+        try:
+            image = client.text_to_image(
+                prompt=prompt,
+                model=model_id,
+            )
+            filename = f"{uuid.uuid4().hex[:12]}.png"
+            filepath = os.path.join(OUTPUT_DIR, filename)
+            image.save(filepath)
+            return f"Image saved to {filepath} (model: {model_id})"
+        except Exception as e:
+            last_error = e
+            continue
+
+    return f"Error generating image with all models. Last error: {str(last_error)}"
+
+
 final_answer = FinalAnswerTool()
 search_tool = DuckDuckGoSearchTool()
 
-model = HfApiModel(
+model = ApiModel(
     max_tokens=2096,
     temperature=0.5,
     model_id="Qwen/Qwen2.5-Coder-32B-Instruct",
     custom_role_conversions=None,
 )
-
-image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
 
 with open("prompts.yaml", "r") as stream:
     prompt_templates = yaml.safe_load(stream)
@@ -67,7 +108,7 @@ agent = CodeAgent(
         search_tool,
         fetch_webpage,
         get_current_time_in_timezone,
-        image_generation_tool,
+        image_generation,
     ],
     max_steps=8,
     verbosity_level=2,
