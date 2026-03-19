@@ -12,6 +12,7 @@ from Gradio_UI import GradioUI
 @tool
 def fetch_webpage(url: str) -> str:
     """Fetch and return the readable text content of a webpage.
+
     Args:
         url: The URL of the webpage to retrieve.
     """
@@ -33,6 +34,7 @@ def fetch_webpage(url: str) -> str:
 @tool
 def get_current_time_in_timezone(timezone: str) -> str:
     """Fetch the current local time in a specified timezone.
+
     Args:
         timezone: A valid timezone string, e.g. 'America/New_York'.
     """
@@ -47,6 +49,7 @@ def get_current_time_in_timezone(timezone: str) -> str:
 @tool
 def image_generation(prompt: str) -> str:
     """Generate an image from a text prompt using Hugging Face Inference API.
+
     Args:
         prompt: A detailed image description.
     """
