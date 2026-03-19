@@ -1,5 +1,5 @@
 ---
-title: First Agent Template
+title: First Agent
 emoji: ⚡
 colorFrom: pink
 colorTo: yellow
