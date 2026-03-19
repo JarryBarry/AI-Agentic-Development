@@ -1,8 +1,7 @@
-from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel, tool
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel, tool
 import datetime
 import requests
 import pytz
-import yaml
 import uuid
 import os
 from bs4 import BeautifulSoup
@@ -33,9 +32,9 @@ def fetch_webpage(url: str) -> str:
 
 @tool
 def get_current_time_in_timezone(timezone: str) -> str:
-    """A tool that fetches the current local time in a specified timezone.
+    """Fetch the current local time in a specified timezone.
     Args:
-        timezone: A string representing a valid timezone (e.g., 'America/New_York').
+        timezone: A valid timezone string, e.g. 'America/New_York'.
     """
     try:
         tz = pytz.timezone(timezone)
@@ -47,43 +46,34 @@ def get_current_time_in_timezone(timezone: str) -> str:
 
 @tool
 def image_generation(prompt: str) -> str:
-    """Generate an image from a text prompt using the Hugging Face Inference API.
-    The tool sends the prompt to a text-to-image model and saves the
-    resulting image locally, returning the file path.
+    """Generate an image from a text prompt using Hugging Face Inference API.
     Args:
-        prompt: A detailed text description of the image you want to generate.
+        prompt: A detailed image description.
     """
-    import io
-    from PIL import Image
     from huggingface_hub import InferenceClient
 
-    HF_TOKEN = os.environ.get("HF_TOKEN", "")
-    OUTPUT_DIR = "generated_images"
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    hf_token = os.environ.get("HF_TOKEN", "")
+    output_dir = "generated_images"
+    os.makedirs(output_dir, exist_ok=True)
 
-    MODELS = [
+    models = [
         "black-forest-labs/FLUX.1-schnell",
         "stabilityai/stable-diffusion-3.5-large",
-        "stabilityai/stable-diffusion-3-medium-diffusers",
         "runwayml/stable-diffusion-v1-5",
     ]
 
-    client = InferenceClient(token=HF_TOKEN)
+    client = InferenceClient(token=hf_token)
 
     last_error = None
-    for model_id in MODELS:
+    for model_id in models:
         try:
-            image = client.text_to_image(
-                prompt=prompt,
-                model=model_id,
-            )
+            image = client.text_to_image(prompt=prompt, model=model_id)
             filename = f"{uuid.uuid4().hex[:12]}.png"
-            filepath = os.path.join(OUTPUT_DIR, filename)
+            filepath = os.path.join(output_dir, filename)
             image.save(filepath)
-            return f"Image saved to {filepath} (model: {model_id})"
+            return f"Image saved to {filepath} using model {model_id}"
         except Exception as e:
             last_error = e
-            continue
 
     return f"Error generating image with all models. Last error: {str(last_error)}"
 
@@ -91,15 +81,10 @@ def image_generation(prompt: str) -> str:
 final_answer = FinalAnswerTool()
 search_tool = DuckDuckGoSearchTool()
 
-model = HfApiModel(
-    max_tokens=2096,
-    temperature=0.5,
+model = InferenceClientModel(
     model_id="Qwen/Qwen2.5-Coder-32B-Instruct",
-    custom_role_conversions=None,
+    token=os.environ.get("HF_TOKEN"),
 )
-
-with open("prompts.yaml", "r") as stream:
-    prompt_templates = yaml.safe_load(stream)
 
 agent = CodeAgent(
     model=model,
@@ -112,11 +97,8 @@ agent = CodeAgent(
     ],
     max_steps=8,
     verbosity_level=2,
-    grammar=None,
-    planning_interval=None,
-    name=None,
-    description=None,
-    prompt_templates=prompt_templates,
+    name="assistant",
+    description="A helpful web-enabled assistant that can search, read webpages, check timezones, and generate images.",
 )
 
 GradioUI(agent).launch()
