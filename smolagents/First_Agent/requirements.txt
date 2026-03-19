@@ -1,5 +1,7 @@
-markdownify
-smolagents==1.13.0
+smolagents
+huggingface_hub
+Pillow
 requests
-duckduckgo_search
-pandas
+pytz
+beautifulsoup4
+pyyaml
