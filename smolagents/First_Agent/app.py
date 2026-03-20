@@ -12,13 +12,17 @@ from Gradio_UI import GradioUI
 @tool
 def security_header_auditor(url: str) -> str:
     """
-    This tool is a website security/recon/auditor used to identify headers of a website.
+    Performs basic security reconnaissance on a URL by checking HTTP headers,
+    identifying missing security headers, and detecting server technologies.
+    Use this tool whenever asked to check, audit, scan, or analyze a website's
+    security, headers, or configuration.
     
     Args:
         url: The URL of the webpage to retrieve.
     
     Returns:
-        A Dictionary containing
+        A dictionary containing security headers found, missing security headers, 
+        server technologies detected, and any security misconfigurations.
         | Finding | Reason | Score |
     """
     try:
