@@ -7,6 +7,7 @@ import os
 from bs4 import BeautifulSoup
 from tools.final_answer import FinalAnswerTool
 from Gradio_UI import GradioUI
+import json
 
 ###A Security Tool to audit headers using AI
 @tool
@@ -82,7 +83,7 @@ def security_header_auditor(url: str) -> str:
                 findings["deprecated"][h] = {
                     "status": "deprecated"
                 }
-        return str(findings)
+        return json.dumps(findings, indent=2)
         
     except Exception as e:
         return f"Error finding header security vulnerabilities: {str(e)}"
