@@ -66,6 +66,18 @@ def security_header_auditor(url: str) -> str:
                 findings["missing"][header] = {
                     "status": "missing"
                 }
+
+        for header in headers_present_finding:
+            if header in response.headers:
+                findings["missing"][header] = {
+                    "status": "present"
+                }
+
+        for header in headers_deprecated:
+            if header not in response.headers:
+                findings["missing"][header] = {
+                    "status": "deprecated"
+                }
             
 @tool
 def fetch_webpage(url: str) -> str:
