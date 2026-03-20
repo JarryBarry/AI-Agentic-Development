@@ -23,7 +23,7 @@ def security_header_auditor(url: str) -> str:
     """
     try:
         response = requests.get(url, verify=False)
-        header = response.headers
+        headers = response.headers
         #All the Header Findings 
         headers_missing_finding = [
         "Strict-Transport-Security",
@@ -61,21 +61,21 @@ def security_header_auditor(url: str) -> str:
             "deprecated": {}
         }
         ###The loop for all the missing headers
-        for header in headers_missing_finding:
-            if header not in response.headers:
-                findings["missing"][header] = {
+        for h in headers_missing_finding:
+            if h not in response.headers:
+                findings["missing"][h] = {
                     "status": "missing"
                 }
 
-        for header in headers_present_finding:
-            if header in response.headers:
-                findings["missing"][header] = {
+        for h in headers_present_finding:
+            if h in response.headers:
+                findings["present"][h] = {
                     "status": "present"
                 }
 
-        for header in headers_deprecated:
-            if header not in response.headers:
-                findings["missing"][header] = {
+        for h in headers_deprecated:
+            if h in response.headers:
+                findings["deprecated"][h] = {
                     "status": "deprecated"
                 }
             
