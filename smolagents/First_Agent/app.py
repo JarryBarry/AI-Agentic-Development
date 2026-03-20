@@ -175,6 +175,7 @@ agent = CodeAgent(
         fetch_webpage,
         get_current_time_in_timezone,
         image_generation,
+        security_header_auditor,
     ],
     max_steps=8,
     verbosity_level=2,
