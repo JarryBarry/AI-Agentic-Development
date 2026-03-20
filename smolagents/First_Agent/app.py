@@ -8,7 +8,65 @@ from bs4 import BeautifulSoup
 from tools.final_answer import FinalAnswerTool
 from Gradio_UI import GradioUI
 
+###A Security Tool to audit headers using AI
+@tool
+def security_header_auditor(url: str) -> str:
+    """
+    This tool is a website security/recon/auditor used to identify headers of a website.
+    
+    Args:
+        url: The URL of the webpage to retrieve.
+    
+    Returns:
+        A Dictionary containing
+        | Finding | Reason | Score |
+    """
+    try:
+        response = requests.get(url, verify=False)
+        header = response.headers
+        #All the Header Findings 
+        headers_missing_finding = [
+        "Strict-Transport-Security",
+        "Content-Security-Policy",
+        "X-Content-Type-Options",
+        "X-Frame-Options",
+        "Referrer-Policy",
+        "Permissions-Policy",
+        "X-Permitted-Cross-Domain-Policies",
+        ]
+        headers_present_finding = [
+        "X-Powered-By",
+        "X-AspNet-Version",
+        "X-AspNetMvc-Version",
+        "X-Generator",
+        "X-Debug",
+        "X-Debug-Token",
+        "X-Debug-Token-Link",
+        "X-Backend-Server",
+        "X-Pingback",
+        "SourceMap",
+        "X-SourceMap",
+        ]
+        headers_deprecated = [
+        "X-XSS-Protection",
+        "Expect-CT",
+        "Public-Key-Pins",
+        "Public-Key-Pins-Report-Only",
+        ]
 
+        ###Storing of the findings
+        findings = {
+            "missing": {},
+            "present": {},
+            "deprecated": {}
+        }
+        ###The loop for all the missing headers
+        for header in headers_missing_finding:
+            if header not in response.headers:
+                findings["missing"][header] = {
+                    "status": "missing"
+                }
+            
 @tool
 def fetch_webpage(url: str) -> str:
     """Fetch and return the readable text content of a webpage.
