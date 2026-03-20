@@ -78,6 +78,10 @@ def security_header_auditor(url: str) -> str:
                 findings["deprecated"][h] = {
                     "status": "deprecated"
                 }
+        return str(findings)
+        
+    except Exception as e:
+        return f"Error finding header security vulnerabilities: {str(e)}"
             
 @tool
 def fetch_webpage(url: str) -> str:
