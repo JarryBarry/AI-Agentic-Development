@@ -9,6 +9,7 @@ from tools.final_answer import FinalAnswerTool
 from Gradio_UI import GradioUI
 import json
 
+
 ###A Security Tool to audit headers using AI
 @tool
 def security_header_auditor(url: str) -> str:
@@ -17,82 +18,111 @@ def security_header_auditor(url: str) -> str:
     identifying missing security headers, and detecting server technologies.
     Use this tool whenever asked to check, audit, scan, or analyze a website's
     security, headers, or configuration.
-    
     Args:
         url: The URL of the webpage to retrieve.
-    
     Returns:
-        A dictionary containing security headers found, missing security headers, 
-        server technologies detected, and any security misconfigurations.
-        | Finding | Reason | Score |
+        A plain text security audit report containing missing security headers,
+        information disclosure headers found, and deprecated headers detected.
     """
+    def get_header_value(headers, name):
+        for k, v in headers.items():
+            if k.lower() == name.lower():
+                return v
+        return None
+
     try:
-        response = requests.get(url, verify=False)
-        #All the Header Findings 
+        response = requests.get(url, verify=False, timeout=10)
+
         headers_missing_finding = [
-        "Strict-Transport-Security",
-        "Content-Security-Policy",
-        "X-Content-Type-Options",
-        "X-Frame-Options",
-        "Referrer-Policy",
-        "Permissions-Policy",
-        "X-Permitted-Cross-Domain-Policies",
+            "Strict-Transport-Security",
+            "Content-Security-Policy",
+            "X-Content-Type-Options",
+            "X-Frame-Options",
+            "Referrer-Policy",
+            "Permissions-Policy",
+            "X-Permitted-Cross-Domain-Policies",
         ]
         headers_present_finding = [
-        "X-Powered-By",
-        "X-AspNet-Version",
-        "X-AspNetMvc-Version",
-        "X-Generator",
-        "X-Debug",
-        "X-Debug-Token",
-        "X-Debug-Token-Link",
-        "X-Backend-Server",
-        "X-Pingback",
-        "SourceMap",
-        "X-SourceMap",
+            "X-Powered-By",
+            "X-AspNet-Version",
+            "X-AspNetMvc-Version",
+            "X-Generator",
+            "X-Debug",
+            "X-Debug-Token",
+            "X-Debug-Token-Link",
+            "X-Backend-Server",
+            "X-Pingback",
+            "SourceMap",
+            "X-SourceMap",
         ]
         headers_deprecated = [
-        "X-XSS-Protection",
-        "Expect-CT",
-        "Public-Key-Pins",
-        "Public-Key-Pins-Report-Only",
+            "X-XSS-Protection",
+            "Expect-CT",
+            "Public-Key-Pins",
+            "Public-Key-Pins-Report-Only",
         ]
 
-        ###Storing of the findings
         findings = {
             "missing": {},
             "present": {},
             "deprecated": {}
         }
-        ###The loop for all the missing headers
+
         for h in headers_missing_finding:
             if h.lower() not in [k.lower() for k in response.headers.keys()]:
-                findings["missing"][h] = {
-                    "status": "missing"
-                }
+                findings["missing"][h] = {"status": "missing"}
 
         for h in headers_present_finding:
             if h.lower() in [k.lower() for k in response.headers.keys()]:
                 findings["present"][h] = {
                     "status": "present",
-                    "value": response.headers[h]
+                    "value": get_header_value(response.headers, h)
                 }
 
         for h in headers_deprecated:
-            if h.lower() in[k.lower() for k in response.headers.keys()]:
+            if h.lower() in [k.lower() for k in response.headers.keys()]:
                 findings["deprecated"][h] = {
                     "status": "deprecated",
-                    "value": response.headers[h]
+                    "value": get_header_value(response.headers, h)
                 }
-        return json.dumps(findings, indent=2)
-        
+
+        # === Building the report ===
+        report = f"🔍 Security Header Audit Report for {url}\n"
+        report += "=" * 65 + "\n\n"
+
+        report += "❌ MISSING SECURITY HEADERS:\n"
+        if findings["missing"]:
+            for header in findings["missing"]:
+                report += f"   • {header}\n"
+        else:
+            report += "   None found\n"
+
+        report += "\n⚠️  INFORMATION DISCLOSURE HEADERS FOUND:\n"
+        if findings["present"]:
+            for header, data in findings["present"].items():
+                report += f"   • {header}: {data.get('value', 'N/A')}\n"
+        else:
+            report += "   None found\n"
+
+        report += "\n⚰️  DEPRECATED HEADERS FOUND:\n"
+        if findings["deprecated"]:
+            for header, data in findings["deprecated"].items():
+                report += f"   • {header}: {data.get('value', 'N/A')}\n"
+        else:
+            report += "   None found\n"
+
+        report += "\n" + "=" * 65 + "\n"
+        report += "Report generated by security_header_auditor tool."
+
+        return report
+
     except Exception as e:
         return f"Error finding header security vulnerabilities: {str(e)}"
-            
+
+
 @tool
 def fetch_webpage(url: str) -> str:
     """Fetch and return the readable text content of a webpage.
-
     Args:
         url: The URL of the webpage to retrieve.
     """
@@ -114,7 +144,6 @@ def fetch_webpage(url: str) -> str:
 @tool
 def get_current_time_in_timezone(timezone: str) -> str:
     """Fetch the current local time in a specified timezone.
-
     Args:
         timezone: A valid timezone string, e.g. 'America/New_York'.
     """
@@ -129,7 +158,6 @@ def get_current_time_in_timezone(timezone: str) -> str:
 @tool
 def image_generation(prompt: str) -> str:
     """Generate an image from a text prompt using Hugging Face Inference API.
-
     Args:
         prompt: A detailed image description.
     """
