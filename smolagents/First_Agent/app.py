@@ -75,12 +75,14 @@ def security_header_auditor(url: str) -> str:
             if h.lower() in [k.lower() for k in response.headers.keys()]:
                 findings["present"][h] = {
                     "status": "present"
+                    "value": response.headers[h]
                 }
 
         for h in headers_deprecated:
             if h.lower() in[k.lower() for k in response.headers.keys()]:
                 findings["deprecated"][h] = {
                     "status": "deprecated"
+                    "value": response.headers[h]
                 }
         return json.dumps(findings, indent=2)
         
